@@ -4,11 +4,13 @@ import Leavebutton from "./leavebutton.jsx";
 import Nextbutton from "./nextround.jsx";
 import ShareScreen from "./shareScreen.jsx";
 
+import logo from "./assets/logo.png"
+
 const Content = ()=>{
   return (
-      <div className="h-screen mx-10">
-        <div className="relative top-4 flex justify-between w-full">
-          <h1 className="relative top-3 font-extrabold">SCRIBBLE-MANIA</h1>
+      <div className="h-screen w-full flex items-center flex-col">
+        <div className="relative top-4 flex w-full max-w-3xl align-center">
+          <h1 className="relative top-3 font-extrabold"><img src={ logo } className='h-24 w-auto'></img></h1>
           <Nextbutton/>
           <div>
             <p>Current player:</p>
@@ -16,8 +18,8 @@ const Content = ()=>{
           </div>
         </div>
 
-        <div className="relative top-8 bg-red-50 aspect-video w-full max-w-4xl">Video</div>
-        <div className="relative top-12 flex justify-between w-full max-w-4xl">
+        <div className="relative top-8 border-8 border-white aspect-video w-full max-w-3xl rounded-4xl bg-black"></div>
+        <div className="relative top-12 flex align-center w-full max-w-3xl">
           <Viewbutton/>
           <Leavebutton/>
           <ShareScreen/>
