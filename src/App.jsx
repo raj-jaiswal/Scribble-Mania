@@ -1,13 +1,14 @@
-import React from 'react'
+import React from 'react';
+import Chats from './Chats.jsx';
+import Content from "./Content.jsx"; 
 
 const App = () => {
   return (
-    <div>
-      <h1 className='text-3xl text-white bg-blue-700'>
-        Scribble Maniaaaaa
-      </h1>
+    <div className="flex w-full h-screen overflow-hidden">
+      <div className="flex-1 pr-4"><Content /></div>
+      <div className="w-80"><Chats /></div>
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;
