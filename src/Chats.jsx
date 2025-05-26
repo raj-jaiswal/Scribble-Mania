@@ -1,14 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import sendIcon from "./assets/send-icon.svg";
 
-const Chats = () => {
+const Chats = (props) => {
+  const chatBox = useRef(null);
+
   const [msgs, setMsgs] = useState([
-    { sender: 'PeakUser', text: '', points: 0 },
-    { sender: 'FlowMat', text: '', points: 0 },
-    { sender: 'Mr. Admin', text: '', points: 0 },
-    { sender: 'PeakUser', text: '', points: 0 },
-    { sender: 'PeakUser', text: '', points: 0 },
-    { sender: 'PeakUser', text: '', points: 0 },
-    { sender: 'PeakUser', text: '', points: 0 },
+    { sender: 'PeakUser', text: 'he', points: 0 },
+    { sender: 'FlowMat', text: 'hi', points: 0 },
+    { sender: 'Mr. Admin', text: 'asdv', points: 0 },
+    { sender: 'PeakUser', text: 'sadvasfv', points: 0 },
+    { sender: 'PeakUser', text: 'asd', points: 0 },
+    { sender: 'PeakUser', text: 'asd', points: 100 },
+    { sender: 'PeakUser', text: 'egrb', points: 0 },
   ]);
 
   const randomWords = [
@@ -17,6 +20,12 @@ const Chats = () => {
     "gale", "thrive", "mirth", "glint", "whirl",
     "brisk", "hollow", "knack", "sprout", "plume"
   ];
+
+  useEffect(() => {
+    if (chatBox.current) {
+      chatBox.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }, [msgs]);
 
   const [newMsg, setNewMsg] = useState('');
   const [currentWord, setCurrentWord] = useState('');
@@ -33,7 +42,7 @@ const Chats = () => {
         ...prev,
         {
           text: newMsg,
-          sender: 'You',
+          sender: props.user,
           points: points,
         }
       ]);
@@ -67,6 +76,8 @@ const Chats = () => {
                     </div>
                   </div>
               ))}
+          
+          <div className="dummy" ref={chatBox}></div>
         </div>
 
         <form onSubmit={handleSend} className="p-4 border-t border-gray-200">
@@ -79,12 +90,7 @@ const Chats = () => {
                 className="flex-1 focus:outline-none"
             />
             <button type="submit" className="text-blue-600">
-              <svg xmlns="http://www.w3.org/2000/svg"
-                   viewBox="0 0 24 24"
-                   fill="currentColor"
-                   className="w-6 h-6">
-                <path d="M3.478 2.405a.75.75 0 0 0-.926.94l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 109.816 109.816 0 0 0 14.209-8.672c.44-.404.478-1.005.084-1.402A109.816 109.816 0 0 0 3.478 2.405Z" />
-              </svg>
+              <img src={ sendIcon } className="w-8 h-8"></img>
             </button>
           </div>
         </form>
