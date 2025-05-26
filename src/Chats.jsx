@@ -1,18 +1,24 @@
 import React, { useState, useEffect, useRef } from "react";
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import { addDoc, serverTimestamp } from "firebase/firestore";
 import sendIcon from "./assets/send-icon.svg";
 
 const Chats = (props) => {
   const chatBox = useRef(null);
 
-  const [msgs, setMsgs] = useState([
-    { sender: 'PeakUser', text: 'he', points: 0 },
-    { sender: 'FlowMat', text: 'hi', points: 0 },
-    { sender: 'Mr. Admin', text: 'asdv', points: 0 },
-    { sender: 'PeakUser', text: 'sadvasfv', points: 0 },
-    { sender: 'PeakUser', text: 'asd', points: 0 },
-    { sender: 'PeakUser', text: 'asd', points: 100 },
-    { sender: 'PeakUser', text: 'egrb', points: 0 },
-  ]);
+  const [msgs, setMsgs] = useState([]);
+    
+  useEffect(() => {
+    const q = query(collection(props.db, "messages"), orderBy("createdAt"));
+
+    const unsub = onSnapshot(q, snap => {
+      const loaded = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      console.log(loaded);
+      setMsgs(loaded);
+    });
+
+    return unsub;
+  }, [props.db]);
 
   const randomWords = [
     "echo", "blaze", "quartz", "frost", "lunar",
@@ -34,20 +40,20 @@ const Chats = (props) => {
     setCurrentWord(randomWords[0]);
   }, []);
 
-  const handleSend = (e) => {
+  const handleSend = async e => {
     e.preventDefault();
-    if (newMsg.trim()) {
-      const points = newMsg.toLowerCase() === currentWord.toLowerCase() ? 50 : 0;
-      setMsgs(prev => [
-        ...prev,
-        {
-          text: newMsg,
-          sender: props.user,
-          points: points,
-        }
-      ]);
-      setNewMsg('');
-    }
+    if (!newMsg.trim()) return;
+
+    const points = newMsg.toLowerCase() === currentWord.toLowerCase() ? 50 : 0;
+
+    await addDoc(collection(props.db, "messages"), {
+      text: newMsg,
+      sender: props.user,
+      points,
+      createdAt: serverTimestamp(),
+    });
+
+    setNewMsg("");          // clear the input
   };
 
   return (
@@ -56,9 +62,9 @@ const Chats = (props) => {
           Chats
         </h1>
 
-        <div className="px-5 py-2 bg-blue-50 text-blue-800 font-semibold">
+        {props.admin && <div className="px-5 py-2 bg-blue-50 text-blue-800 font-semibold">
           Current Word: {currentWord}
-        </div>
+        </div>}
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {msgs
