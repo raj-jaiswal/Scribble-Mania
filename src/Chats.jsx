@@ -8,7 +8,7 @@ const Chats = (props) => {
   const chatBox = useRef(null);
 
   const [msgs, setMsgs] = useState([]);
-
+    
   useEffect(() => {
     const q = query(collection(props.db, "messages"), orderBy("createdAt"));
 
@@ -58,12 +58,12 @@ const Chats = (props) => {
       });
     } else {
       // Add the user's guess message only if incorrect
-      await addDoc(collection(props.db, "messages"), {
-        text: newMsg,
-        sender: props.user,
+    await addDoc(collection(props.db, "messages"), {
+      text: newMsg,
+      sender: props.user,
         points: 0,
-        createdAt: serverTimestamp(),
-      });
+      createdAt: serverTimestamp(),
+    });
     }
 
     setNewMsg("");
@@ -126,11 +126,11 @@ const Chats = (props) => {
                         {msg.text}
                       </p>
                       <div className="flex items-center">
-                        {msg.points > 0 && (
-                            <span className="text-blue-600 text-sm font-semibold ml-2">
-                              +{msg.points} pts
-                            </span>
-                        )}
+                      {msg.points > 0 && (
+                          <span className="text-blue-600 text-sm font-semibold ml-2">
+                    +{msg.points} pts
+                  </span>
+                      )}
                         {props.admin && (
                             <button
                                 onClick={() => handleDelete(msg.id)}
@@ -143,7 +143,7 @@ const Chats = (props) => {
                     </div>
                   </div>
               ))}
-
+          
           <div className="dummy" ref={chatBox}></div>
         </div>
 
