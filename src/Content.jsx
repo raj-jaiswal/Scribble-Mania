@@ -1,5 +1,5 @@
 import React from 'react';
-import Viewbutton from "./leaderboard.jsx";
+import Viewbutton from "./leaderboardButton.jsx";
 import Leavebutton from "./leavebutton.jsx";
 import Nextbutton from "./nextround.jsx";
 import ShareScreen from "./shareScreen.jsx";
@@ -13,17 +13,14 @@ const Content = (props)=>{
           <h1 className="relative top-3 font-extrabold"><img src={ logo } className='h-24 w-auto'></img></h1>
           { props.admin && <>
               <Nextbutton/>
-              <div className='ml-32 font-bold flex flex-col items-center text-left h-8'>
-                <div className='text-left'>Current player :</div>
-                <div className='text-left'>Current word :</div>
-              </div>
+              <div className='ml-32 font-bold text-left h-full flex items-center'>Current player :</div>
             </>
           }
         </div>
 
         <div className="relative top-8 border-8 border-white aspect-video w-full max-w-3xl rounded-4xl bg-black"></div>
         <div className="relative top-12 flex align-center w-full max-w-3xl">
-          <Viewbutton/>
+          <Viewbutton setLeader={ props.setLeader }/>
           <Leavebutton/>
           { props.admin && <ShareScreen/> }
         </div>
