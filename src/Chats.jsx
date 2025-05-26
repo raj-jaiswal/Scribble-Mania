@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
-import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, deleteDoc, doc } from "firebase/firestore";
 import { addDoc, serverTimestamp } from "firebase/firestore";
 import sendIcon from "./assets/send-icon.svg";
+import deleteIcon from "./assets/delete-icon.svg";
 
 const Chats = (props) => {
   const chatBox = useRef(null);
 
   const [msgs, setMsgs] = useState([]);
-    
+
   useEffect(() => {
     const q = query(collection(props.db, "messages"), orderBy("createdAt"));
 
@@ -44,16 +45,48 @@ const Chats = (props) => {
     e.preventDefault();
     if (!newMsg.trim()) return;
 
-    const points = newMsg.toLowerCase() === currentWord.toLowerCase() ? 50 : 0;
+    const isCorrect = newMsg.toLowerCase() === currentWord.toLowerCase();
 
-    await addDoc(collection(props.db, "messages"), {
-      text: newMsg,
-      sender: props.user,
-      points,
-      createdAt: serverTimestamp(),
-    });
+    if (isCorrect) {
+      // Only add the success message for correct guesses
+      await addDoc(collection(props.db, "messages"), {
+        text: `${props.user} guessed it!`,
+        sender: "System",
+        points: 50,
+        isCorrectGuess: true,
+        createdAt: serverTimestamp(),
+      });
+    } else {
+      // Add the user's guess message only if incorrect
+      await addDoc(collection(props.db, "messages"), {
+        text: newMsg,
+        sender: props.user,
+        points: 0,
+        createdAt: serverTimestamp(),
+      });
+    }
 
-    setNewMsg("");          // clear the input
+    setNewMsg("");
+  };
+
+  const handleDelete = async (messageId) => {
+    try {
+      await deleteDoc(doc(props.db, "messages", messageId));
+    } catch (error) {
+      console.error("Error deleting message:", error);
+    }
+  };
+
+  const handleClearChat = async () => {
+    try {
+      const batch = [];
+      msgs.forEach(msg => {
+        batch.push(deleteDoc(doc(props.db, "messages", msg.id)));
+      });
+      await Promise.all(batch);
+    } catch (error) {
+      console.error("Error clearing chat:", error);
+    }
   };
 
   return (
@@ -62,27 +95,55 @@ const Chats = (props) => {
           Chats
         </h1>
 
-        {props.admin && <div className="px-5 py-2 bg-blue-50 text-blue-800 font-semibold">
-          Current Word: {currentWord}
-        </div>}
+        {props.admin && <div className="px-5 py-2 bg-blue-50 text-blue-800 font-semibold flex justify-between">
+          <div> Current Word: {currentWord}</div>
+
+          <button
+              type="button"
+              onClick={handleClearChat}
+              className="text-blue-600 text-sm font-semibold hover:text-blue-800 ml-2"
+          >
+            Clear Chat
+          </button>
+        </div>
+
+        }
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {msgs
               .filter(msg => msg.text.trim() !== '')
-              .map((msg, index) => (
-                  <div key={index} className="flex flex-col items-start">
-                    <div className="font-bold">{msg.sender}</div>
+              .map((msg) => (
+                  <div key={msg.id} className="flex flex-col items-start">
+                    <div className={`font-bold ${msg.isCorrectGuess ? 'text-green-600' : ''}`}>
+                      {msg.sender}
+                    </div>
                     <div className="flex justify-between w-full items-center">
-                      <p className="text-gray-800 text-sm">{msg.text}</p>
-                      {msg.points > 0 && (
-                          <span className="text-blue-600 text-sm font-semibold ml-2">
-                    +{msg.points} pts
-                  </span>
-                      )}
+                      <p className={`text-sm ${
+                          msg.isCorrectGuess
+                              ? 'text-green-600 font-semibold'
+                              : 'text-gray-800'
+                      }`}>
+                        {msg.text}
+                      </p>
+                      <div className="flex items-center">
+                        {msg.points > 0 && (
+                            <span className="text-blue-600 text-sm font-semibold ml-2">
+                              +{msg.points} pts
+                            </span>
+                        )}
+                        {props.admin && (
+                            <button
+                                onClick={() => handleDelete(msg.id)}
+                                className="ml-2 hover:opacity-80"
+                            >
+                              <img src={deleteIcon} alt="delete" className="w-4 h-4" />
+                            </button>
+                        )}
+                      </div>
                     </div>
                   </div>
               ))}
-          
+
           <div className="dummy" ref={chatBox}></div>
         </div>
 
@@ -96,8 +157,9 @@ const Chats = (props) => {
                 className="flex-1 focus:outline-none"
             />
             <button type="submit" className="text-blue-600">
-              <img src={ sendIcon } className="w-8 h-8"></img>
+              <img src={sendIcon} className="w-8 h-8" alt="send" />
             </button>
+
           </div>
         </form>
       </div>
