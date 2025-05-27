@@ -49,7 +49,7 @@ const App = () => {
         <div className="flex-1 pr-4"><Content admin={ admin } setLeader={ setShowLeader }  db={ db }/></div>
         { showLeader ?
           <div className="w-full max-w-[28rem] z-10 text-black"><Leaderboard setLeader={ setShowLeader }  db={ db }/></div> :
-          <div className="w-full max-w-[28rem] z-10 text-black"><Chats admin={ admin } user={ user.displayName } db={ db }/></div>
+          <div className="w-full max-w-[28rem] z-10 text-black"><Chats admin={ admin } user={ user.displayName } db={ db } userEmail={user.email}/></div>
         }
       </div>
       : <Login />
