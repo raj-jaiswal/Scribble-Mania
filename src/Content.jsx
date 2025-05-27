@@ -12,7 +12,7 @@ const Content = (props)=>{
         <div className="relative top-4 flex w-full max-w-3xl items-center">
           <h1 className="relative top-3 font-extrabold"><img src={ logo } className='h-24 w-auto'></img></h1>
           { props.admin && <>
-              <Nextbutton/>
+              <Nextbutton db={ props.db }/>
               <div className='ml-32 font-bold text-left h-full flex items-center'>Current player :</div>
             </>
           }

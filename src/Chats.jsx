@@ -1,25 +1,29 @@
 import React, { useState, useEffect, useRef } from "react";
-import { collection, query, orderBy, onSnapshot, deleteDoc, doc } from "firebase/firestore";
-import { addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, deleteDoc, doc, Timestamp, where, runTransaction } from "firebase/firestore";
+import { addDoc, serverTimestamp, getDocs } from "firebase/firestore";
+import { Filter } from 'bad-words'
+const filter = new Filter();
+
 import sendIcon from "./assets/send-icon.svg";
 import deleteIcon from "./assets/delete-icon.svg";
 
 const Chats = (props) => {
   const chatBox = useRef(null);
-
   const [msgs, setMsgs] = useState([]);
+  const [userJoinTime] = useState(() => Timestamp.now());
 
   useEffect(() => {
-    const q = query(collection(props.db, "messages"), orderBy("createdAt"));
-
+    const q = query(
+        collection(props.db, "messages"),
+        where("createdAt", ">=", userJoinTime),
+        orderBy("createdAt")
+    );
     const unsub = onSnapshot(q, snap => {
       const loaded = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      console.log(loaded);
       setMsgs(loaded);
     });
-
     return unsub;
-  }, [props.db]);
+  }, [props.db, userJoinTime]);
 
   const randomWords = [
     "echo", "blaze", "quartz", "frost", "lunar",
@@ -41,29 +45,78 @@ const Chats = (props) => {
     setCurrentWord(randomWords[0]);
   }, []);
 
-  const handleSend = async e => {
+  const [alreadyGuessed, setAlreadyGuessed] = useState(false);
+
+  const handleSend = async (e) => {
     e.preventDefault();
+
+    if (alreadyGuessed) {
+      alert("You have already guessed correctly for this word!");
+      return;
+    }
+
     if (!newMsg.trim()) return;
+
+    if (filter.isProfane(newMsg)) {
+      alert("Please avoid using inappropriate language.");
+      return;
+    }
+
 
     const isCorrect = newMsg.toLowerCase() === currentWord.toLowerCase();
 
     if (isCorrect) {
-      // Only add the success message for correct guesses
+      try {
+        await runTransaction(props.db, async (tx) => {
+          const counterRef = doc(props.db, "wordCounts", currentWord);
+          const snap = await tx.get(counterRef);
+          const current = snap.exists() ? snap.data().count || 0 : 0;
+
+          if (current >= 3) {
+            const msgRef = doc(collection(props.db, "messages"));
+            tx.set(msgRef, {
+              text: newMsg,
+              sender: props.user,
+              points: 0,
+              word: currentWord,
+              createdAt: serverTimestamp(),
+            });
+            return;
+          }
+
+          const position = current + 1;
+          const points =
+            position === 1 ? 300 :
+            position === 2 ? 200 :
+            100;
+
+          tx.set(counterRef, { count: position }, { merge: true });
+
+          const msgRef = doc(collection(props.db, "messages"));
+          tx.set(msgRef, {
+            text: `${props.user} guessed it!`,
+            sender: "System",
+            points,
+            isCorrectGuess: true,
+            word: currentWord,
+            createdAt: serverTimestamp(),
+          });
+        });
+
+        setAlreadyGuessed(true);
+      } catch (err) {
+        console.error("Transaction failed:", err);
+      }
+    }
+
+    else {
       await addDoc(collection(props.db, "messages"), {
-        text: `${props.user} guessed it!`,
-        sender: "System",
-        points: 50,
-        isCorrectGuess: true,
+        text: newMsg,
+        sender: props.user,
+        points: 0,
+        word: currentWord,
         createdAt: serverTimestamp(),
       });
-    } else {
-      // Add the user's guess message only if incorrect
-    await addDoc(collection(props.db, "messages"), {
-      text: newMsg,
-      sender: props.user,
-        points: 0,
-      createdAt: serverTimestamp(),
-    });
     }
 
     setNewMsg("");
@@ -79,11 +132,12 @@ const Chats = (props) => {
 
   const handleClearChat = async () => {
     try {
-      const batch = [];
-      msgs.forEach(msg => {
-        batch.push(deleteDoc(doc(props.db, "messages", msg.id)));
+      const querySnapshot = await getDocs(collection(props.db, "messages"));
+      const deletions = querySnapshot.docs.map((msgDoc) => {
+        return deleteDoc(doc(props.db, "messages", msgDoc.id));
       });
-      await Promise.all(batch);
+      await Promise.all(deletions);
+      console.log("All messages deleted.");
     } catch (error) {
       console.error("Error clearing chat:", error);
     }
@@ -95,19 +149,18 @@ const Chats = (props) => {
           Chats
         </h1>
 
-        {props.admin && <div className="px-5 py-2 bg-blue-50 text-blue-800 font-semibold flex justify-between">
-          <div> Current Word: {currentWord}</div>
-
-          <button
-              type="button"
-              onClick={handleClearChat}
-              className="text-blue-600 text-sm font-semibold hover:text-blue-800 ml-2"
-          >
-            Clear Chat
-          </button>
-        </div>
-
-        }
+        {props.admin && (
+            <div className="px-5 py-2 bg-blue-50 text-blue-800 font-semibold flex justify-between">
+              <div> Current Word: {currentWord}</div>
+              <button
+                  type="button"
+                  onClick={handleClearChat}
+                  className="text-blue-600 text-sm font-semibold hover:text-blue-800 ml-2"
+              >
+                Clear Chat
+              </button>
+            </div>
+        )}
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {msgs
@@ -126,11 +179,11 @@ const Chats = (props) => {
                         {msg.text}
                       </p>
                       <div className="flex items-center">
-                      {msg.points > 0 && (
-                          <span className="text-blue-600 text-sm font-semibold ml-2">
-                    +{msg.points} pts
-                  </span>
-                      )}
+                        {msg.points > 0 && (
+                            <span className="text-blue-600 text-sm font-semibold ml-2">
+                      +{msg.points} pts
+                    </span>
+                        )}
                         {props.admin && (
                             <button
                                 onClick={() => handleDelete(msg.id)}
@@ -143,7 +196,6 @@ const Chats = (props) => {
                     </div>
                   </div>
               ))}
-
           <div className="dummy" ref={chatBox}></div>
         </div>
 
@@ -153,13 +205,13 @@ const Chats = (props) => {
                 type="text"
                 value={newMsg}
                 onChange={(e) => setNewMsg(e.target.value)}
-                placeholder="Enter Your Answer"
+                placeholder={alreadyGuessed ? "You already guessed!" : "Enter Your Answer"}
                 className="flex-1 focus:outline-none"
+                disabled={alreadyGuessed}
             />
-            <button type="submit" className="text-blue-600">
+            <button type="submit" className="text-blue-600" disabled={alreadyGuessed}>
               <img src={sendIcon} className="w-8 h-8" alt="send" />
             </button>
-
           </div>
         </form>
       </div>
@@ -167,3 +219,4 @@ const Chats = (props) => {
 };
 
 export default Chats;
+
