@@ -8,7 +8,7 @@ const Chats = (props) => {
   const chatBox = useRef(null);
 
   const [msgs, setMsgs] = useState([]);
-    
+
   useEffect(() => {
     const q = query(collection(props.db, "messages"), orderBy("createdAt"));
 
@@ -143,7 +143,7 @@ const Chats = (props) => {
                     </div>
                   </div>
               ))}
-          
+
           <div className="dummy" ref={chatBox}></div>
         </div>
 
