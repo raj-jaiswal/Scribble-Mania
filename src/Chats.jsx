@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { collection, query, orderBy, onSnapshot, deleteDoc, doc, Timestamp, where, runTransaction } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, deleteDoc, doc, Timestamp, where, runTransaction, increment } from "firebase/firestore";
 import { addDoc, serverTimestamp, getDocs } from "firebase/firestore";
 import { Filter } from 'bad-words'
 const filter = new Filter();
@@ -69,7 +69,6 @@ const Chats = (props) => {
     return unsub;
   }, [props.db, currentWord, alreadyGuessed]);
 
-
   const handleSend = async (e) => {
     e.preventDefault();
 
@@ -84,7 +83,6 @@ const Chats = (props) => {
       alert("Please avoid using inappropriate language.");
       return;
     }
-
 
     const isCorrect = newMsg.toLowerCase() === currentWord.toLowerCase();
 
@@ -124,15 +122,26 @@ const Chats = (props) => {
             word: currentWord,
             createdAt: serverTimestamp(),
           });
+
+          if (points > 0) {
+            const lbRef = doc(props.db, "leaderboard", props.userEmail);
+            tx.set(
+              lbRef,
+              {
+                name: props.user,
+                email: props.userEmail,
+                points: increment(points),
+              },
+              { merge: true }
+            );
+          }
         });
 
         setAlreadyGuessed(true);
       } catch (err) {
         console.error("Transaction failed:", err);
       }
-    }
-
-    else {
+    } else {
       await addDoc(collection(props.db, "messages"), {
         text: newMsg,
         sender: props.user,
@@ -144,6 +153,7 @@ const Chats = (props) => {
 
     setNewMsg("");
   };
+
 
   const handleDelete = async (messageId) => {
     try {
