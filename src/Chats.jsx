@@ -1,25 +1,26 @@
 import React, { useState, useEffect, useRef } from "react";
-import { collection, query, orderBy, onSnapshot, deleteDoc, doc } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, deleteDoc, doc, Timestamp, where } from "firebase/firestore";
 import { addDoc, serverTimestamp } from "firebase/firestore";
 import sendIcon from "./assets/send-icon.svg";
 import deleteIcon from "./assets/delete-icon.svg";
 
 const Chats = (props) => {
   const chatBox = useRef(null);
-
   const [msgs, setMsgs] = useState([]);
+  const [userJoinTime] = useState(() => Timestamp.now());
 
   useEffect(() => {
-    const q = query(collection(props.db, "messages"), orderBy("createdAt"));
-
+    const q = query(
+        collection(props.db, "messages"),
+        where("createdAt", ">=", userJoinTime),
+        orderBy("createdAt")
+    );
     const unsub = onSnapshot(q, snap => {
       const loaded = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      console.log(loaded);
       setMsgs(loaded);
     });
-
     return unsub;
-  }, [props.db]);
+  }, [props.db, userJoinTime]);
 
   const randomWords = [
     "echo", "blaze", "quartz", "frost", "lunar",
@@ -41,27 +42,47 @@ const Chats = (props) => {
     setCurrentWord(randomWords[0]);
   }, []);
 
+  const alreadyGuessed = msgs.some(
+      msg =>
+          msg.isCorrectGuess &&
+          msg.word === currentWord &&
+          msg.text.startsWith(props.user)
+  );
+
   const handleSend = async e => {
     e.preventDefault();
+    if (alreadyGuessed) {
+      alert("You have already guessed correctly for this word!");
+      return;
+    }
     if (!newMsg.trim()) return;
 
     const isCorrect = newMsg.toLowerCase() === currentWord.toLowerCase();
 
     if (isCorrect) {
-      // Only add the success message for correct guesses
+      const correctGuesses = msgs.filter(msg =>
+          msg.isCorrectGuess && msg.word === currentWord
+      ).length;
+      const position = correctGuesses + 1;
+      let points = 0;
+      if (position === 1) points = 300;
+      else if (position === 2) points = 200;
+      else if (position === 3) points = 100;
+
       await addDoc(collection(props.db, "messages"), {
         text: `${props.user} guessed it!`,
         sender: "System",
-        points: 50,
+        points: points,
         isCorrectGuess: true,
+        word: currentWord,
         createdAt: serverTimestamp(),
       });
     } else {
-      // Add the user's guess message only if incorrect
       await addDoc(collection(props.db, "messages"), {
         text: newMsg,
         sender: props.user,
         points: 0,
+        word: currentWord,
         createdAt: serverTimestamp(),
       });
     }
@@ -95,19 +116,18 @@ const Chats = (props) => {
           Chats
         </h1>
 
-        {props.admin && <div className="px-5 py-2 bg-blue-50 text-blue-800 font-semibold flex justify-between">
-          <div> Current Word: {currentWord}</div>
-
-          <button
-              type="button"
-              onClick={handleClearChat}
-              className="text-blue-600 text-sm font-semibold hover:text-blue-800 ml-2"
-          >
-            Clear Chat
-          </button>
-        </div>
-
-        }
+        {props.admin && (
+            <div className="px-5 py-2 bg-blue-50 text-blue-800 font-semibold flex justify-between">
+              <div> Current Word: {currentWord}</div>
+              <button
+                  type="button"
+                  onClick={handleClearChat}
+                  className="text-blue-600 text-sm font-semibold hover:text-blue-800 ml-2"
+              >
+                Clear Chat
+              </button>
+            </div>
+        )}
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {msgs
@@ -128,8 +148,8 @@ const Chats = (props) => {
                       <div className="flex items-center">
                         {msg.points > 0 && (
                             <span className="text-blue-600 text-sm font-semibold ml-2">
-                              +{msg.points} pts
-                            </span>
+                      +{msg.points} pts
+                    </span>
                         )}
                         {props.admin && (
                             <button
@@ -143,7 +163,6 @@ const Chats = (props) => {
                     </div>
                   </div>
               ))}
-
           <div className="dummy" ref={chatBox}></div>
         </div>
 
@@ -153,13 +172,13 @@ const Chats = (props) => {
                 type="text"
                 value={newMsg}
                 onChange={(e) => setNewMsg(e.target.value)}
-                placeholder="Enter Your Answer"
+                placeholder={alreadyGuessed ? "You already guessed!" : "Enter Your Answer"}
                 className="flex-1 focus:outline-none"
+                disabled={alreadyGuessed}
             />
-            <button type="submit" className="text-blue-600">
+            <button type="submit" className="text-blue-600" disabled={alreadyGuessed}>
               <img src={sendIcon} className="w-8 h-8" alt="send" />
             </button>
-
           </div>
         </form>
       </div>
