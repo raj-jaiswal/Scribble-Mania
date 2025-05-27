@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { collection, query, orderBy, onSnapshot, deleteDoc, doc, Timestamp, where } from "firebase/firestore";
-import { addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, deleteDoc, doc, Timestamp, where, runTransaction } from "firebase/firestore";
+import { addDoc, serverTimestamp, getDocs } from "firebase/firestore";
+import { Filter } from 'bad-words'
+const filter = new Filter();
+
 import sendIcon from "./assets/send-icon.svg";
 import deleteIcon from "./assets/delete-icon.svg";
 
@@ -42,42 +45,71 @@ const Chats = (props) => {
     setCurrentWord(randomWords[0]);
   }, []);
 
-  const alreadyGuessed = msgs.some(
-      msg =>
-          msg.isCorrectGuess &&
-          msg.word === currentWord &&
-          msg.text.startsWith(props.user)
-  );
+  const [alreadyGuessed, setAlreadyGuessed] = useState(false);
 
-  const handleSend = async e => {
+  const handleSend = async (e) => {
     e.preventDefault();
+
     if (alreadyGuessed) {
       alert("You have already guessed correctly for this word!");
       return;
     }
+
     if (!newMsg.trim()) return;
+
+    if (filter.isProfane(newMsg)) {
+      alert("Please avoid using inappropriate language.");
+      return;
+    }
+
 
     const isCorrect = newMsg.toLowerCase() === currentWord.toLowerCase();
 
     if (isCorrect) {
-      const correctGuesses = msgs.filter(msg =>
-          msg.isCorrectGuess && msg.word === currentWord
-      ).length;
-      const position = correctGuesses + 1;
-      let points = 0;
-      if (position === 1) points = 300;
-      else if (position === 2) points = 200;
-      else if (position === 3) points = 100;
+      try {
+        await runTransaction(props.db, async (tx) => {
+          const counterRef = doc(props.db, "wordCounts", currentWord);
+          const snap = await tx.get(counterRef);
+          const current = snap.exists() ? snap.data().count || 0 : 0;
 
-      await addDoc(collection(props.db, "messages"), {
-        text: `${props.user} guessed it!`,
-        sender: "System",
-        points: points,
-        isCorrectGuess: true,
-        word: currentWord,
-        createdAt: serverTimestamp(),
-      });
-    } else {
+          if (current >= 3) {
+            const msgRef = doc(collection(props.db, "messages"));
+            tx.set(msgRef, {
+              text: newMsg,
+              sender: props.user,
+              points: 0,
+              word: currentWord,
+              createdAt: serverTimestamp(),
+            });
+            return;
+          }
+
+          const position = current + 1;
+          const points =
+            position === 1 ? 300 :
+            position === 2 ? 200 :
+            100;
+
+          tx.set(counterRef, { count: position }, { merge: true });
+
+          const msgRef = doc(collection(props.db, "messages"));
+          tx.set(msgRef, {
+            text: `${props.user} guessed it!`,
+            sender: "System",
+            points,
+            isCorrectGuess: true,
+            word: currentWord,
+            createdAt: serverTimestamp(),
+          });
+        });
+
+        setAlreadyGuessed(true);
+      } catch (err) {
+        console.error("Transaction failed:", err);
+      }
+    }
+
+    else {
       await addDoc(collection(props.db, "messages"), {
         text: newMsg,
         sender: props.user,
@@ -100,11 +132,12 @@ const Chats = (props) => {
 
   const handleClearChat = async () => {
     try {
-      const batch = [];
-      msgs.forEach(msg => {
-        batch.push(deleteDoc(doc(props.db, "messages", msg.id)));
+      const querySnapshot = await getDocs(collection(props.db, "messages"));
+      const deletions = querySnapshot.docs.map((msgDoc) => {
+        return deleteDoc(doc(props.db, "messages", msgDoc.id));
       });
-      await Promise.all(batch);
+      await Promise.all(deletions);
+      console.log("All messages deleted.");
     } catch (error) {
       console.error("Error clearing chat:", error);
     }
