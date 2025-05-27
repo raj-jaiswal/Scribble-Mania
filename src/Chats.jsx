@@ -46,6 +46,29 @@ const Chats = (props) => {
   }, []);
 
   const [alreadyGuessed, setAlreadyGuessed] = useState(false);
+  
+  useEffect(() => {
+    if (!alreadyGuessed || !currentWord) return;
+
+    const counterRef = doc(props.db, "wordCounts", currentWord);
+    let isFirstSnapshot = true;
+
+    const unsub = onSnapshot(counterRef, snap => {
+      const count = snap.exists() ? snap.data().count ?? 0 : 0;
+
+      if (isFirstSnapshot) {
+        isFirstSnapshot = false;
+        return;
+      }
+
+      if (count === 0) {
+        setAlreadyGuessed(false);
+      }
+    });
+
+    return unsub;
+  }, [props.db, currentWord, alreadyGuessed]);
+
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -219,4 +242,3 @@ const Chats = (props) => {
 };
 
 export default Chats;
-
