@@ -67,8 +67,8 @@ const Content = (props) => {
         <h1 className="relative top-3 font-extrabold"><img src={logo} className='h-24 w-auto'></img></h1>
         {props.admin && <>
           <Nextbutton db={props.db} onNextRound={updateCurrentPlayer} />
-          <div className='ml-32 font-bold text-left h-full flex items-center'>
-            Current player: {randomUser} ({randomUserEmail})
+          <div className='ml-32 font-bold text-left h-full flex items-center align-left'>
+            Current player: {randomUser}<br/>({randomUserEmail})
           </div>
         </>
         }
