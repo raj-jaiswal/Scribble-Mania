@@ -29,7 +29,7 @@ const Leaderboard = (props) => {
           Leaderboard
         </h1>
         <button className="absolute top-3 right-5 transform transition hover:-translate-y-1 hover:scale-105" onClick={ ()=>{props.setLeader(false)} }><img className="h-12 w-12" src={ cancelIcon }/></button>
-        <div className='w-full h-full p-5 overflow-y-scroll text-md [&>*:nth-child(1)]:bg-[#2C99CF] [&>*:nth-child(2)]:bg-[#247FAC] [&>*:nth-child(3)]:bg-[#2C99CF]'>
+        <div className='w-full h-full p-5 overflow-y-scroll text-md [&>*:nth-child(1)]:bg-[#2C99CF] [&>*:nth-child(2)]:bg-[#247FAC] [&>*:nth-child(3)]:bg-[#066290]'>
           { leaders.map((player, idx) => (
               <div key={ player.id } className='w-full h-18 text-white bg-[#022A3E] mb-2 rounded-xl flex items-center justify-between px-8'>
                 <div className='flex'>

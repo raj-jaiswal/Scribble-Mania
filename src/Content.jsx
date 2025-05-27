@@ -16,8 +16,10 @@ const Content = (props) => {
   const updateCurrentPlayer = () => {
     if (activeUsers.length > 0) {
       const randomIndex = Math.floor(Math.random() * activeUsers.length);
-      setRandomUser(activeUsers[randomIndex].displayName);
-      setRandomUserEmail(activeUsers[randomIndex].email);
+      const chosen = activeUsers[randomIndex];
+      setRandomUser(chosen.displayName);
+      setRandomUserEmail(chosen.email);
+      props.onPlayerChange?.(chosen.email);
     }
   };
 
@@ -31,8 +33,10 @@ const Content = (props) => {
       
       if (usersArray.length > 0) {
         const randomIndex = Math.floor(Math.random() * usersArray.length);
-        setRandomUser(usersArray[randomIndex].displayName);
-        setRandomUserEmail(usersArray[randomIndex].email);
+        const chosen = usersArray[randomIndex];
+        setRandomUser(chosen.displayName);
+        setRandomUserEmail(chosen.email);
+        props.onPlayerChange?.(chosen.email);
       }
     });
 

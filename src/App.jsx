@@ -6,6 +6,7 @@ import Login from "./login.jsx";
 import Leaderboard from './leaderboard.jsx';
  
 import backdrop from "./assets/backdrop.png";
+import PlayerScreen from './playerScreen.jsx';
 
 const App = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -22,6 +23,7 @@ const App = () => {
   }, [isMobile]);
 
   const [user, setUser] = useState(null);
+  const [isPlayer, setIsPlayer] = useState(false);
   const [admin, setAdmin] = useState(false);
   const [showLeader, setShowLeader] = useState(false);
 
@@ -37,6 +39,14 @@ const App = () => {
     });
   }
 
+  const handlePlayerChange = (playerEmail) => {
+    if (user && playerEmail === user.email) {
+      setIsPlayer(true);
+    } else {
+      setIsPlayer(false);
+    }
+  };
+
   useEffect(() =>{
     fetchUserData();
   }, []);
@@ -46,10 +56,13 @@ const App = () => {
       ( user ?
       <div className='flex w-full h-screen overflow-hidden text-white font-["Poppins"]'>
         <img src={ backdrop } className='w-full h-full absolute top-0 left-0 bg-cover'></img>
-        <div className="flex-1 pr-4"><Content admin={ admin } setLeader={ setShowLeader }  db={ db }/></div>
+        <div className="flex-1 pr-4"><Content admin={ admin } setLeader={ setShowLeader }  db={ db } onPlayerChange={handlePlayerChange}/></div>
         { showLeader ?
           <div className="w-full max-w-[28rem] z-10 text-black"><Leaderboard setLeader={ setShowLeader }  db={ db }/></div> :
-          <div className="w-full max-w-[28rem] z-10 text-black"><Chats admin={ admin } user={ user.displayName } db={ db } userEmail={user.email}/></div>
+          (!isPlayer ?
+            <div className="w-full max-w-[28rem] z-10 text-black"><Chats admin={ admin } user={ user.displayName } db={ db } userEmail={user.email}/></div> :
+            <div className="w-full max-w-[28rem] z-10 text-black"><PlayerScreen /></div>
+          )
         }
       </div>
       : <Login />
