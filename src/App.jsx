@@ -4,7 +4,7 @@ import Chats from './Chats.jsx';
 import Content from "./Content.jsx"; 
 import Login from "./login.jsx";
 import Leaderboard from './leaderboard.jsx';
-
+ 
 import backdrop from "./assets/backdrop.png";
 
 const App = () => {
