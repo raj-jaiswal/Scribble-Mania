@@ -1,12 +1,21 @@
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 import React from 'react'
-import { auth } from './firebase';
+import { auth, db } from './firebase';
+import { doc, setDoc } from 'firebase/firestore';
 
 function login() {
   function googleLogin(){
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider).then(async(result)=>{
         if (result){
+            // Store user data in Firestore
+            await setDoc(doc(db, "users", result.user.uid), {
+                displayName: result.user.displayName,
+                email: result.user.email,
+                photoURL: result.user.photoURL,
+                lastLogin: new Date()
+            }, { merge: true });
+            
             console.log(`Thank You for Joining US. Enjoy ${ result.user.displayName }!`);
         }
     });
