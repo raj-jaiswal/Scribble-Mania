@@ -7,8 +7,24 @@ import { realtimeDb, auth } from './firebase';
 import { ref, onValue, set, remove, onDisconnect } from 'firebase/database';
 
 import logo from "./assets/logo.png"
+import Video from './video.jsx';
+import ShareAudio from './shareAudio.jsx';
+import { useScreenBroadcast } from './useScreenBroadcast';
 
 const Content = (props) => {
+   const roomId = 'globalRoom';
+   const { remoteStream, startBroadcast } = useScreenBroadcast({
+     roomId,
+     isAdmin: props.admin,
+   });
+   
+   const [sharing, setSharing] = useState(false);
+   const beginSharing = async () => {
+     if (sharing) return;
+     await startBroadcast();
+     setSharing(true);
+   };
+
   const [randomUser, setRandomUser] = useState('');
   const [randomUserEmail, setRandomUserEmail] = useState('');
   const [activeUsers, setActiveUsers] = useState([]);
@@ -110,13 +126,19 @@ const Content = (props) => {
           }
         </div>
 
-        <div className="relative top-8 border-8 border-white aspect-video w-full max-w-3xl rounded-4xl bg-black"></div>
-        <div className="relative top-12 flex align-center w-full max-w-3xl">
-          <Viewbutton setLeader={props.setLeader} />
-          <Leavebutton />
-          {props.admin && <ShareScreen />}
-        </div>
+      <Video stream={remoteStream} />
+
+      <div className="relative top-12 flex align-center w-full max-w-3xl">
+        <Viewbutton setLeader={props.setLeader} />
+        <Leavebutton />
+          {props.admin && (
+            <>
+              <ShareScreen onClick={beginSharing} sharing={sharing} />
+              <ShareAudio stream={remoteStream} />
+            </>
+          )}
       </div>
+    </div>
   )
 }
 
