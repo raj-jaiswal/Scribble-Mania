@@ -34,11 +34,11 @@ const Chats = (props) => {
   const [newMsg, setNewMsg] = useState('');
 
   const [alreadyGuessed, setAlreadyGuessed] = useState(false);
-  
-  useEffect(() => {
-    if (!alreadyGuessed || !props.currentWord) return;
 
-    const counterRef = doc(props.db, "wordCounts", props.currentWord);
+  useEffect(() => {
+    if (!alreadyGuessed) return;
+
+    const counterRef = doc(props.db, "wordCounts", 'test');
     let isFirstSnapshot = true;
 
     const unsub = onSnapshot(counterRef, snap => {
@@ -49,7 +49,7 @@ const Chats = (props) => {
         return;
       }
 
-      if (count === 0 || count == 3) {
+      if (count === 0 || count >= 3) {
         setAlreadyGuessed(false);
       }
     });
@@ -60,7 +60,7 @@ const Chats = (props) => {
   const handleSend = async (e) => {
     e.preventDefault();
 
-    if (alreadyGuessed) {
+    if (!props.admin && alreadyGuessed) {
       alert("You have already guessed correctly for this word!");
       return;
     }
@@ -77,9 +77,10 @@ const Chats = (props) => {
     if (isCorrect) {
       try {
         await runTransaction(props.db, async (tx) => {
-          const counterRef = doc(props.db, "wordCounts", props.currentWord);
+          const counterRef = doc(props.db, "wordCounts", 'test');
           const snap = await tx.get(counterRef);
           const current = snap.exists() ? snap.data().count || 0 : 0;
+          let position;
 
           if (current >= 3) {
             const msgRef = doc(collection(props.db, "messages"));
@@ -93,7 +94,7 @@ const Chats = (props) => {
             return;
           }
 
-          const position = current + 1;
+          position = current + 1;
           const points =
             position === 1 ? 300 :
             position === 2 ? 200 :
@@ -123,9 +124,9 @@ const Chats = (props) => {
               { merge: true }
             );
           }
+          setAlreadyGuessed(true);
         });
 
-        setAlreadyGuessed(true);
       } catch (err) {
         console.error("Transaction failed:", err);
       }
@@ -226,11 +227,11 @@ const Chats = (props) => {
                 type="text"
                 value={newMsg}
                 onChange={(e) => setNewMsg(e.target.value)}
-                placeholder={alreadyGuessed ? "You already guessed!" : "Enter Your Answer"}
+                placeholder={(!props.admin && alreadyGuessed) ? "You already guessed!" : "Enter Your Answer"}
                 className="flex-1 focus:outline-none"
-                disabled={alreadyGuessed}
+                disabled={!props.admin && alreadyGuessed}
             />
-            <button type="submit" className="text-blue-600" disabled={alreadyGuessed}>
+            <button type="submit" className="text-blue-600" disabled={!props.admin && alreadyGuessed}>
               <img src={sendIcon} className="w-8 h-8" alt="send" />
             </button>
           </div>

@@ -99,10 +99,10 @@ const App = () => {
                       <div className='flex w-full h-screen overflow-hidden text-white font-["Poppins"]'>
                         <img src={ backdrop } className='w-full h-full absolute top-0 left-0 bg-cover'></img>
                         <div className="flex-1 pr-4"><Content admin={ admin } setLeader={ setShowLeader }  db={ db } onPlayerChange={handlePlayerChange} currentWord={currentWord} getRandomWord={getRandomWord}/></div>
+                        <div className={`w-full max-w-[28rem] z-10 text-black ${ (!showLeader && !isPlayer) ? 'block' : 'hidden' }`}><Chats admin={ admin } user={ user.displayName } db={ db } userEmail={user.email} currentWord={currentWord}/></div>
                         { showLeader ?
                             <div className="w-full max-w-[28rem] z-10 text-black"><Leaderboard setLeader={ setShowLeader }  db={ db }/></div> :
-                            (!isPlayer ?
-                                    <div className="w-full max-w-[28rem] z-10 text-black"><Chats admin={ admin } user={ user.displayName } db={ db } userEmail={user.email} currentWord={currentWord}/></div> :
+                            (isPlayer &&
                                     <div className="w-full max-w-[28rem] z-10 text-black"><PlayerScreen currentWord={currentWord} /></div>
                             )
                         }
