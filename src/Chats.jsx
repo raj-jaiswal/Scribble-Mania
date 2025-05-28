@@ -25,13 +25,6 @@ const Chats = (props) => {
     return unsub;
   }, [props.db, userJoinTime]);
 
-  const randomWords = [
-    "echo", "blaze", "quartz", "frost", "lunar",
-    "pixel", "drift", "ember", "vault", "crisp",
-    "gale", "thrive", "mirth", "glint", "whirl",
-    "brisk", "hollow", "knack", "sprout", "plume"
-  ];
-
   useEffect(() => {
     if (chatBox.current) {
       chatBox.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -39,18 +32,13 @@ const Chats = (props) => {
   }, [msgs]);
 
   const [newMsg, setNewMsg] = useState('');
-  const [currentWord, setCurrentWord] = useState('');
-
-  useEffect(() => {
-    setCurrentWord(randomWords[0]);
-  }, []);
 
   const [alreadyGuessed, setAlreadyGuessed] = useState(false);
   
   useEffect(() => {
-    if (!alreadyGuessed || !currentWord) return;
+    if (!alreadyGuessed || !props.currentWord) return;
 
-    const counterRef = doc(props.db, "wordCounts", currentWord);
+    const counterRef = doc(props.db, "wordCounts", props.currentWord);
     let isFirstSnapshot = true;
 
     const unsub = onSnapshot(counterRef, snap => {
@@ -67,7 +55,7 @@ const Chats = (props) => {
     });
 
     return unsub;
-  }, [props.db, currentWord, alreadyGuessed]);
+  }, [props.db, props.currentWord, alreadyGuessed]);
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -84,12 +72,12 @@ const Chats = (props) => {
       return;
     }
 
-    const isCorrect = newMsg.toLowerCase() === currentWord.toLowerCase();
+    const isCorrect = newMsg.toLowerCase() === props.currentWord.toLowerCase();
 
     if (isCorrect) {
       try {
         await runTransaction(props.db, async (tx) => {
-          const counterRef = doc(props.db, "wordCounts", currentWord);
+          const counterRef = doc(props.db, "wordCounts", props.currentWord);
           const snap = await tx.get(counterRef);
           const current = snap.exists() ? snap.data().count || 0 : 0;
 
@@ -99,7 +87,7 @@ const Chats = (props) => {
               text: newMsg,
               sender: props.user,
               points: 0,
-              word: currentWord,
+              word: props.currentWord,
               createdAt: serverTimestamp(),
             });
             return;
@@ -119,7 +107,7 @@ const Chats = (props) => {
             sender: "System",
             points,
             isCorrectGuess: true,
-            word: currentWord,
+            word: props.currentWord,
             createdAt: serverTimestamp(),
           });
 
@@ -146,7 +134,7 @@ const Chats = (props) => {
         text: newMsg,
         sender: props.user,
         points: 0,
-        word: currentWord,
+        word: props.currentWord,
         createdAt: serverTimestamp(),
       });
     }
@@ -184,7 +172,7 @@ const Chats = (props) => {
 
         {props.admin && (
             <div className="px-5 py-2 bg-blue-50 text-blue-800 font-semibold flex justify-between">
-              <div> Current Word: {currentWord}</div>
+              <div> Current Word: {props.currentWord}</div>
               <button
                   type="button"
                   onClick={handleClearChat}

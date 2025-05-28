@@ -10,9 +10,12 @@ const Nextbutton = (props) => {
 
     await Promise.all(batchDeletes);
     
-    // Call the updateCurrentPlayer function if it exists
+    if (props.onNextWord) {
+        props.onNextWord();
+    }
+    
     if (props.onNextRound) {
-      props.onNextRound();
+        props.onNextRound();
     }
   };
 

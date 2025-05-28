@@ -25,12 +25,12 @@ const Content = (props) => {
 
   useEffect(() => {
     const activeUsersRef = ref(realtimeDb, 'activeUsers');
-    
+
     const unsubscribe = onValue(activeUsersRef, (snapshot) => {
       const users = snapshot.val() || {};
       const usersArray = Object.values(users);
       setActiveUsers(usersArray);
-      
+
       if (usersArray.length > 0) {
         const randomIndex = Math.floor(Math.random() * usersArray.length);
         const chosen = usersArray[randomIndex];
@@ -66,25 +66,25 @@ const Content = (props) => {
   }, []);
 
   return (
-    <div className="h-screen w-full flex items-center flex-col">
-      <div className="relative top-4 flex w-full max-w-3xl items-center">
-        <h1 className="relative top-3 font-extrabold"><img src={logo} className='h-24 w-auto'></img></h1>
-        {props.admin && <>
-          <Nextbutton db={props.db} onNextRound={updateCurrentPlayer} />
-          <div className='ml-32 font-bold text-left h-full flex items-center align-left'>
-            Current player: {randomUser}<br/>({randomUserEmail})
-          </div>
-        </>
-        }
-      </div>
+      <div className="h-screen w-full flex items-center flex-col">
+        <div className="relative top-4 flex w-full max-w-3xl items-center">
+          <h1 className="relative top-3 font-extrabold"><img src={logo} className='h-24 w-auto'></img></h1>
+          {props.admin && <>
+            <Nextbutton db={props.db} onNextRound={updateCurrentPlayer} onNextWord={props.onNextWord} />
+            <div className='ml-32 font-bold text-left h-full flex items-center align-left'>
+              Current player: {randomUser}<br/>({randomUserEmail})
+            </div>
+          </>
+          }
+        </div>
 
-      <div className="relative top-8 border-8 border-white aspect-video w-full max-w-3xl rounded-4xl bg-black"></div>
-      <div className="relative top-12 flex align-center w-full max-w-3xl">
-        <Viewbutton setLeader={props.setLeader} />
-        <Leavebutton />
-        {props.admin && <ShareScreen />}
+        <div className="relative top-8 border-8 border-white aspect-video w-full max-w-3xl rounded-4xl bg-black"></div>
+        <div className="relative top-12 flex align-center w-full max-w-3xl">
+          <Viewbutton setLeader={props.setLeader} />
+          <Leavebutton />
+          {props.admin && <ShareScreen />}
+        </div>
       </div>
-    </div>
   )
 }
 
