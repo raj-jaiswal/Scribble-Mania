@@ -88,11 +88,6 @@ const App = () => {
     return randomWords[randomIndex];
   };
 
-  const handleNextWord = () => {
-    const newWord = getRandomWord();
-    setCurrentWord(newWord);
-  };
-
   return (
       ( !isMobile ?
               ( user ?
