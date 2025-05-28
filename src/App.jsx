@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { auth, db } from './firebase.js';
+import { auth, db, realtimeDb } from './firebase.js';
+import { ref, onValue, set, get } from 'firebase/database';
 import Chats from './Chats.jsx';
 import Content from "./Content.jsx";
 import Login from "./login.jsx";
@@ -16,17 +17,10 @@ const App = () => {
     "brisk", "hollow", "knack", "sprout", "plume"
   ];
   const [currentWord, setCurrentWord] = useState('');
-  const [usedWords, setUsedWords] = useState([]);
   const [user, setUser] = useState(null);
   const [isPlayer, setIsPlayer] = useState(false);
   const [admin, setAdmin] = useState(false);
   const [showLeader, setShowLeader] = useState(false);
-
-  useEffect(() => {
-    const initialWord = getRandomWord();
-    setCurrentWord(initialWord);
-    setUsedWords([initialWord]);
-  }, []);
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -36,6 +30,38 @@ const App = () => {
     window.addEventListener("resize", checkScreenSize);
     return () => window.removeEventListener("resize", checkScreenSize);
   }, [isMobile]);
+
+  // Add database listener for current word
+  useEffect(() => {
+    const currentWordRef = ref(realtimeDb, 'currentWord');
+    
+    const unsubscribe = onValue(currentWordRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setCurrentWord(data.word);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Setup initial word if none exists
+  const setupInitialWord = async () => {
+    const currentWordRef = ref(realtimeDb, 'currentWord');
+    const snapshot = await get(currentWordRef);
+    
+    if (!snapshot.exists()) {
+      const initialWord = getRandomWord();
+      await set(currentWordRef, {
+        word: initialWord,
+        timestamp: new Date().toISOString()
+      });
+    }
+  };
+
+  useEffect(() => {
+    setupInitialWord();
+  }, []);
 
   const fetchUserData = async () => {
     auth.onAuthStateChanged(async(user)=>{
@@ -58,19 +84,13 @@ const App = () => {
   }, []);
 
   const getRandomWord = () => {
-    const availableWords = randomWords.filter(word => !usedWords.includes(word));
-    if (availableWords.length === 0) {
-      setUsedWords([]);
-      return randomWords[Math.floor(Math.random() * randomWords.length)];
-    }
-    const randomIndex = Math.floor(Math.random() * availableWords.length);
-    return availableWords[randomIndex];
+    const randomIndex = Math.floor(Math.random() * randomWords.length);
+    return randomWords[randomIndex];
   };
 
   const handleNextWord = () => {
     const newWord = getRandomWord();
     setCurrentWord(newWord);
-    setUsedWords(prev => [...prev, newWord]);
   };
 
   return (
@@ -78,7 +98,7 @@ const App = () => {
               ( user ?
                       <div className='flex w-full h-screen overflow-hidden text-white font-["Poppins"]'>
                         <img src={ backdrop } className='w-full h-full absolute top-0 left-0 bg-cover'></img>
-                        <div className="flex-1 pr-4"><Content admin={ admin } setLeader={ setShowLeader }  db={ db } onPlayerChange={handlePlayerChange} currentWord={currentWord} onNextWord={handleNextWord}/></div>
+                        <div className="flex-1 pr-4"><Content admin={ admin } setLeader={ setShowLeader }  db={ db } onPlayerChange={handlePlayerChange} currentWord={currentWord} getRandomWord={getRandomWord}/></div>
                         { showLeader ?
                             <div className="w-full max-w-[28rem] z-10 text-black"><Leaderboard setLeader={ setShowLeader }  db={ db }/></div> :
                             (!isPlayer ?

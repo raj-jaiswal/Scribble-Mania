@@ -49,7 +49,7 @@ const Chats = (props) => {
         return;
       }
 
-      if (count === 0) {
+      if (count === 0 || count == 3) {
         setAlreadyGuessed(false);
       }
     });
