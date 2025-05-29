@@ -2,13 +2,18 @@ import React, { useState, useEffect } from 'react';
 import Viewbutton from "./leaderboardButton.jsx";
 import Leavebutton from "./leavebutton.jsx";
 import Nextbutton from "./nextround.jsx";
-import ShareScreen from "./shareScreen.jsx";
 import { realtimeDb, auth } from './firebase';
 import { ref, onValue, set, remove, onDisconnect } from 'firebase/database';
 
 import logo from "./assets/logo.png"
 import Video from './video.jsx';
 import ShareAudio from './shareAudio.jsx';
+
+import AgoraRTC from "agora-rtc-sdk-ng";
+
+const APP_ID  = import.meta.env.VITE_AGORA_APP_ID;
+const CHANNEL = import.meta.env.VITE_AGORA_CHANNEL;
+const TOKEN   = import.meta.env.VITE_AGORA_TOKEN || null;
 
 const Content = (props) => {
   const [randomUser, setRandomUser] = useState('');
@@ -99,6 +104,31 @@ const Content = (props) => {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    const client = AgoraRTC.createClient({ mode: "live", codec: "vp8" });
+
+    const init = async () => {
+      await client.join(APP_ID, CHANNEL, TOKEN, null);
+      await client.setClientRole(props.admin ? "host" : "audience");
+
+      client.on("user-published", async (user, mediaType) => {
+        if (mediaType === "audio") {
+          await client.subscribe(user, "audio");
+          user.audioTrack?.play();
+        }
+      });
+
+      // stop when admin leaves
+      client.on("user-unpublished", (user) => {
+        user.audioTrack?.stop();
+      });
+    };
+
+    init();
+
+    return () => { client.leave(); };
+  }, [props.admin]);
+
   return (
       <div className="h-screen w-full flex items-center flex-col">
         <div className="relative top-4 flex w-full max-w-3xl items-center">
@@ -116,15 +146,7 @@ const Content = (props) => {
       <div className="relative top-12 flex align-center w-full max-w-3xl">
         <Viewbutton setLeader={props.setLeader} />
         <Leavebutton />
-        {/* {props.admin && (
-          <>
-            <ShareScreen 
-              onClick={toggleSharing} 
-              sharing={sharing} 
-            />
-            <ShareAudio stream={remoteStream} />
-          </>
-        )} */}
+        <ShareAudio isAdmin = {props.admin}/>
       </div>
     </div>
   )
