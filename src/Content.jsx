@@ -12,18 +12,22 @@ import ShareAudio from './shareAudio.jsx';
 import { useScreenBroadcast } from './useScreenBroadcast';
 
 const Content = (props) => {
-   const roomId = 'globalRoom';
-   const { remoteStream, startBroadcast } = useScreenBroadcast({
-     roomId,
-     isAdmin: props.admin,
-   });
-   
-   const [sharing, setSharing] = useState(false);
-   const beginSharing = async () => {
-     if (sharing) return;
-     await startBroadcast();
-     setSharing(true);
-   };
+  const roomId = 'globalRoom';
+  const { remoteStream, startBroadcast, stopBroadcast } = useScreenBroadcast({
+    roomId,
+    isAdmin: props.admin,
+  });
+  
+  const [sharing, setSharing] = useState(false);
+  
+  const toggleSharing = async () => {
+    if (sharing) {
+      await stopBroadcast();
+    } else {
+      await startBroadcast();
+    }
+    setSharing(!sharing);
+  };
 
   const [randomUser, setRandomUser] = useState('');
   const [randomUserEmail, setRandomUserEmail] = useState('');
@@ -119,11 +123,10 @@ const Content = (props) => {
           <h1 className="relative top-3 font-extrabold"><img src={logo} className='h-24 w-auto'></img></h1>
           {props.admin && <>
             <Nextbutton db={props.db} onNextRound={updateCurrentPlayer} getRandomWord={props.getRandomWord} />
-            <div className='ml-32 font-bold text-left h-full flex items-center align-left'>
-              Current player: {randomUser}<br/>({randomUserEmail})
-            </div>
-          </>
-          }
+          </>}
+          <div className='ml-32 font-bold text-left h-full flex items-center align-left'>
+            Current player: {randomUser} { props.admin && <><br/>{randomUserEmail}</>}
+          </div>
         </div>
 
       <Video stream={remoteStream} />
@@ -131,12 +134,15 @@ const Content = (props) => {
       <div className="relative top-12 flex align-center w-full max-w-3xl">
         <Viewbutton setLeader={props.setLeader} />
         <Leavebutton />
-          {props.admin && (
-            <>
-              <ShareScreen onClick={beginSharing} sharing={sharing} />
-              <ShareAudio stream={remoteStream} />
-            </>
-          )}
+        {props.admin && (
+          <>
+            <ShareScreen 
+              onClick={toggleSharing} 
+              sharing={sharing} 
+            />
+            <ShareAudio stream={remoteStream} />
+          </>
+        )}
       </div>
     </div>
   )

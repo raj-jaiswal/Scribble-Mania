@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const ShareAudio = ({ stream }) => {
-  const [muted, setMuted] = useState(false);
+  const [muted, setMuted] = useState(true);
+
+  useEffect(() => {
+    if (stream) {
+      stream.getAudioTracks().forEach(t => (t.enabled = false));
+    }
+  }, [stream]);
 
   const toggle = () => {
     stream?.getAudioTracks().forEach(t => (t.enabled = !t.enabled));
@@ -14,7 +20,7 @@ const ShareAudio = ({ stream }) => {
       className="m-3 px-6 py-3 rounded-lg bg-white text-black font-bold
                  transition hover:-translate-y-1 hover:scale-105"
     >
-      {muted ? 'Un-mute' : 'Mute'}
+      {muted ? 'Unmute Audio' : 'Mute Audio'}
     </button>
   );
 };

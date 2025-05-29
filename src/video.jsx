@@ -6,6 +6,8 @@ const Video = ({ stream }) => {
   useEffect(() => {
     if (vid.current && stream) {
       vid.current.srcObject = stream;
+    } else if (vid.current) {
+      vid.current.srcObject = null;
     }
   }, [stream]);
 
@@ -20,6 +22,5 @@ const Video = ({ stream }) => {
     />
   );
 };
-
 
 export default Video;
