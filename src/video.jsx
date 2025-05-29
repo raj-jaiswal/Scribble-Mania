@@ -1,25 +1,13 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 
-const Video = ({ stream }) => {
-  const vid = useRef(null);
-
-  useEffect(() => {
-    if (vid.current && stream) {
-      vid.current.srcObject = stream;
-    } else if (vid.current) {
-      vid.current.srcObject = null;
-    }
-  }, [stream]);
-
+const Video = () => {
   return (
-    <video
-      ref={vid}
-      muted
-      autoPlay
-      playsInline
+    <div
       className="relative top-8 border-8 border-white aspect-video
-                 w-full max-w-3xl rounded-4xl bg-black"
-    />
+                 w-full max-w-3xl rounded-4xl bg-black overflow-hidden"
+    >
+      <iframe className='h-full w-full' src="https://embed.figma.com/design/DAKzGzwuPzkKdc0j38RngD/Untitled?node-id=0-1&embed-host=share" allowfullscreen></iframe>
+    </div>
   );
 };
 
