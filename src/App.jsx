@@ -11,10 +11,14 @@ import PlayerScreen from './playerScreen.jsx';
 const App = () => {
   const [isMobile, setIsMobile] = useState(false);
   const randomWords = [
-    "echo", "blaze", "quartz", "frost", "lunar",
-    "pixel", "drift", "ember", "vault", "crisp",
-    "gale", "thrive", "mirth", "glint", "whirl",
-    "brisk", "hollow", "knack", "sprout", "plume"
+    "evil", "dumb", "figma", "google", "pencil",
+    "boring", "bed", "monkey", "laptop", "crazy", 
+    "potato", "echo", "void", "wireframe", "battle", 
+    "sword", "easy", "slap", "photo", "frame",
+    "leaf", "charger", "helmet", "whatsapp", "shoe",
+    "stick", "logo", "blank", "key", "switch",
+    "butter", "cute", "dragon", "fire", "colors",
+    "rain", "rainbow", "bow", "tie", "rope",
   ];
   const [currentWord, setCurrentWord] = useState('');
   const [user, setUser] = useState(null);
