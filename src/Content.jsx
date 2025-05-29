@@ -9,26 +9,8 @@ import { ref, onValue, set, remove, onDisconnect } from 'firebase/database';
 import logo from "./assets/logo.png"
 import Video from './video.jsx';
 import ShareAudio from './shareAudio.jsx';
-import { useScreenBroadcast } from './useScreenBroadcast';
 
 const Content = (props) => {
-  const roomId = 'globalRoom';
-  const { remoteStream, startBroadcast, stopBroadcast } = useScreenBroadcast({
-    roomId,
-    isAdmin: props.admin,
-  });
-  
-  const [sharing, setSharing] = useState(false);
-  
-  const toggleSharing = async () => {
-    if (sharing) {
-      await stopBroadcast();
-    } else {
-      await startBroadcast();
-    }
-    setSharing(!sharing);
-  };
-
   const [randomUser, setRandomUser] = useState('');
   const [randomUserEmail, setRandomUserEmail] = useState('');
   const [activeUsers, setActiveUsers] = useState([]);
@@ -129,12 +111,12 @@ const Content = (props) => {
           </div>
         </div>
 
-      <Video stream={remoteStream} />
+      <Video/>
 
       <div className="relative top-12 flex align-center w-full max-w-3xl">
         <Viewbutton setLeader={props.setLeader} />
         <Leavebutton />
-        {props.admin && (
+        {/* {props.admin && (
           <>
             <ShareScreen 
               onClick={toggleSharing} 
@@ -142,7 +124,7 @@ const Content = (props) => {
             />
             <ShareAudio stream={remoteStream} />
           </>
-        )}
+        )} */}
       </div>
     </div>
   )
