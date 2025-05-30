@@ -14,7 +14,7 @@ const Chats = (props) => {
   const chatBox = useRef(null);
   const [msgs, setMsgs] = useState([]);
   const [userJoinTime] = useState(() => Timestamp.now());
-  const [playNormal] = useSound(NormalSound);
+  const [playNormal] = useSound(NormalSound, {volume: 0.01});
   const [playSuccess] = useSound(SuccessSound);
 
   useEffect(() => {
