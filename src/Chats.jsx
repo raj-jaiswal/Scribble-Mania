@@ -1,16 +1,21 @@
 import React, { useState, useEffect, useRef } from "react";
 import { collection, query, orderBy, onSnapshot, deleteDoc, doc, Timestamp, where, runTransaction, increment } from "firebase/firestore";
 import { addDoc, serverTimestamp, getDocs } from "firebase/firestore";
+import useSound from 'use-sound';
 import { Filter } from 'bad-words'
 const filter = new Filter();
 
 import sendIcon from "./assets/send-icon.svg";
 import deleteIcon from "./assets/delete-icon.svg";
+import NormalSound from "./assets/NormalMsg.mp3";
+import SuccessSound from "./assets/SuccessMsg.mp3";
 
 const Chats = (props) => {
   const chatBox = useRef(null);
   const [msgs, setMsgs] = useState([]);
   const [userJoinTime] = useState(() => Timestamp.now());
+  const [playNormal] = useSound(NormalSound);
+  const [playSuccess] = useSound(SuccessSound);
 
   useEffect(() => {
     const q = query(
@@ -126,7 +131,7 @@ const Chats = (props) => {
           }
           setAlreadyGuessed(true);
         });
-
+          playSuccess();
       } catch (err) {
         console.error("Transaction failed:", err);
       }
@@ -138,6 +143,7 @@ const Chats = (props) => {
         word: props.currentWord,
         createdAt: serverTimestamp(),
       });
+      playNormal();
     }
 
     setNewMsg("");

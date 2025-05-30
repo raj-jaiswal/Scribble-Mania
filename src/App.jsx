@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import useSound from 'use-sound';
 import { auth, db, realtimeDb } from './firebase.js';
 import { ref, onValue, set, get } from 'firebase/database';
 import Chats from './Chats.jsx';
@@ -7,7 +8,7 @@ import Login from "./login.jsx";
 import Leaderboard from './leaderboard.jsx';
 import backdrop from "./assets/backdrop.png";
 import PlayerScreen from './playerScreen.jsx';
-
+import UrTurn from "./assets/UrTurn.mp3"
 const App = () => {
   const [isMobile, setIsMobile] = useState(false);
   const randomWords = [
@@ -25,6 +26,7 @@ const App = () => {
   const [isPlayer, setIsPlayer] = useState(false);
   const [admin, setAdmin] = useState(false);
   const [showLeader, setShowLeader] = useState(false);
+  const [PlayerTurnSound] = useSound(UrTurn);
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -80,7 +82,11 @@ const App = () => {
   }
 
   const handlePlayerChange = (playerEmail) => {
-    setIsPlayer(user && playerEmail === user.email);
+    const isCurrPlayer = (user && playerEmail === user.email);
+    setIsPlayer(isCurrPlayer);
+    if (isCurrPlayer){
+      PlayerTurnSound();
+    }
   };
 
   useEffect(() =>{
