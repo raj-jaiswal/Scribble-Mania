@@ -13,8 +13,8 @@ const App = () => {
   const [isMobile, setIsMobile] = useState(false);
   const randomWords = [
     "evil", "dumb", "figma", "google", "pencil",
-    "boring", "bed", "monkey", "laptop", "crazy", 
-    "potato", "echo", "void", "wireframe", "battle", 
+    "boring", "bed", "monkey", "laptop", "crazy",
+    "potato", "echo", "void", "wireframe", "battle",
     "sword", "easy", "slap", "photo", "frame",
     "leaf", "charger", "helmet", "whatsapp", "shoe",
     "stick", "logo", "blank", "key", "switch",
@@ -40,7 +40,7 @@ const App = () => {
   // Add database listener for current word
   useEffect(() => {
     const currentWordRef = ref(realtimeDb, 'currentWord');
-    
+
     const unsubscribe = onValue(currentWordRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
@@ -55,7 +55,7 @@ const App = () => {
   const setupInitialWord = async () => {
     const currentWordRef = ref(realtimeDb, 'currentWord');
     const snapshot = await get(currentWordRef);
-    
+
     if (!snapshot.exists()) {
       const initialWord = getRandomWord();
       await set(currentWordRef, {
