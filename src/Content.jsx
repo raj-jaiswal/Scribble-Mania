@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Viewbutton from "./leaderboardButton.jsx";
 import Leavebutton from "./leavebutton.jsx";
 import Nextbutton from "./nextround.jsx";
+import ActiveUsersButton from "./activeUsers.jsx";
 import { realtimeDb, auth } from './firebase';
 import { ref, onValue, set, remove, onDisconnect } from 'firebase/database';
 
@@ -147,6 +148,10 @@ const Content = (props) => {
         <Viewbutton setLeader={props.setLeader} />
         <Leavebutton />
         <ShareAudio isAdmin = {props.admin}/>
+        {props.admin && <>
+          <ActiveUsersButton activeUsers={activeUsers} />
+        </>}
+
       </div>
     </div>
   )
