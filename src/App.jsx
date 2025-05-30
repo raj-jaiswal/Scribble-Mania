@@ -12,14 +12,23 @@ import UrTurn from "./assets/UrTurn.mp3"
 const App = () => {
   const [isMobile, setIsMobile] = useState(false);
   const randomWords = [
-    "evil", "dumb", "figma", "google", "pencil",
-    "boring", "bed", "monkey", "laptop", "crazy", 
-    "potato", "echo", "void", "wireframe", "battle", 
-    "sword", "easy", "slap", "photo", "frame",
-    "leaf", "charger", "helmet", "whatsapp", "shoe",
-    "stick", "logo", "blank", "key", "switch",
-    "butter", "cute", "dragon", "fire", "colors",
+    "evil", "figma", "google", "pencil",
+    "bed", "monkey", "laptop", "crazy", 
+    "potato", "echo", "battle", "compass",
+    "sword", "slap", "photo", "frame",
+    "leaf", "charger", "whatsapp", "shoe",
+    "stick", "key", "switch",
+    "butter", "dragon", "fire", "colors",
     "rain", "rainbow", "bow", "tie", "rope",
+    'Guitar','Aeroplane','Snowman','Peacock',
+    'Tooth','Anchor','Camera','Clock','Teddybear',
+    'Crayon','Bacteria','Email','Pizza','Lamp',
+    'Flute','Bicycle','Chair','Candle','Drum',
+    'Bird','Boat','Ladder','Rocket','Spoon',
+    'Toothbrush','Volcano','Witch','Book',
+    'Bridge','Butterfly',
+    'Toothpaste','Scissors','Remote','Stockings',
+    'Sunrise','Windmill','Clown','Keyboard','Dice',
   ];
   const [currentWord, setCurrentWord] = useState('');
   const [user, setUser] = useState(null);
