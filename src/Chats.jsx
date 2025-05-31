@@ -77,7 +77,7 @@ const Chats = (props) => {
       return;
     }
 
-    const isCorrect = newMsg.toLowerCase() === props.currentWord.toLowerCase();
+    const isCorrect = newMsg.trim().toLowerCase() === props.currentWord.trim().toLowerCase();
 
     if (isCorrect) {
       try {
