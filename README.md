@@ -8,8 +8,8 @@
 🔗 [Play Now](https://scribble-mania.vercel.app)
 
 ## 🖼️ Screenshots
-
-![screenshot](src/assets/screenshot.png)
+ 
+![screenshot](src/assets/screenshot_img.png)
 
 - 🎨 Drawing canvas powered by Figma Embed
 - 💬 Real-time guess chat with scoreboard
