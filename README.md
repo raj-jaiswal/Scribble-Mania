@@ -9,7 +9,7 @@
 
 ## 🖼️ Screenshots
 
-*(Add actual images here if needed)*
+![screenshot](src/assets/screenshot.png)
 
 - 🎨 Drawing canvas powered by Figma Embed
 - 💬 Real-time guess chat with scoreboard
@@ -137,5 +137,6 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
-🎨 Built with ❤️ by [Raj Jaiswal](https://github.com/raj-jaiswal) and [Kunal Deore](https://github.com/kunaldeore-04) 
+🎨 Built with ❤️ by [Raj Jaiswal](https://github.com/raj-jaiswal) and [Kunal Deore](https://github.com/kunaldeore-04)
+
 Design meets guessing game – **Scribble Mania** makes drawing competitive and fun!
